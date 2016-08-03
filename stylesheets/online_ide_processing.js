@@ -229,7 +229,55 @@ function codeChanged() {
     }
 }
 
+    function setTabBehaviour() {
+//        var textareas = document.getElementsByTagName('textarea');
+//        var count = textareas.length;
+//        for(var i=0;i<count;i++){
+//            textareas[i].onkeydown = function(e){
+//                if(e.keyCode==9 || e.which==9){
+//                    e.preventDefault();
+//                    var s = this.selectionStart;
+//                    this.value = this.value.substring(0,this.selectionStart) + "\t" + this.value.substring(this.selectionEnd);
+//                    this.selectionEnd = s+1;
+//                }
+//            }
+//        }
+
+        $('#code').on('keydown', function(ev) {
+            var keyCode = ev.keyCode || ev.which;
+
+            if (keyCode == 9) {
+                ev.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                var val = this.value;
+                var selected = val.substring(start, end);
+                var re, count;
+
+                if(ev.shiftKey) {
+                    re = /^\t/gm;
+                    count = -selected.match(re).length;
+                    this.value = val.substring(0, start) + selected.replace(re, '') + val.substring(end);
+                    // todo: add support for shift-tabbing without a selection
+                } else {
+                    re = /^/gm;
+                    count = selected.match(re).length;
+                    this.value = val.substring(0, start) + selected.replace(re, '\t') + val.substring(end);
+                }
+
+                if(start === end) {
+                    this.selectionStart = end + count;
+                } else {
+                    this.selectionStart = start;
+                }
+
+                this.selectionEnd = end + count;
+            }
+        });
+    }
+
 function startDocument() {
+    setTabBehaviour();
     setListeners();
     startCanvas();
 }
