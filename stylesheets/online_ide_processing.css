@@ -21,6 +21,9 @@
         padding: 10px 10px 10px 10px;
         position: relative;
         outline: none;
+        tab-size: 4;
+        -o-tab-size: 4;
+        -moz-tab-size: 4;
     }
 
     textarea:focus#code {
