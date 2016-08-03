@@ -38,7 +38,7 @@
         var ctx = c.getContext("2d");
         ctx.fillStyle = "#106000";
         ctx.font = "12px Arial";
-        ctx.fillText("Нажми здесь, чтобы выполнить код", 10, 15);
+        ctx.fillText("Нажми здесь, чтобы выполнить код", 55, 140);
         var grd = ctx.createRadialGradient(125, 50, 5, 140, 60, 100);
         grd.addColorStop(0, "white");
         grd.addColorStop(1, "green");
@@ -106,9 +106,6 @@
         ctx.fill();
     }
 
-
-    startCanvas();
-
     function createCanvas() {
         var container = document.getElementById('sketch-container');
         var sketch = document.getElementById('sketch');
@@ -131,32 +128,17 @@
         ctx.fillText("Проверь, все ли правильно написал?", 10, 75);
     }
 
-    (function (global) {
-        var canvas = document.getElementById('sketch'),
-                code = document.getElementById('code'),
         /*output = document.getElementById('output'), временно отключено*/
-                instance = null;
 
-        function waitForExit() {
-            var checkbox = document.getElementById('expect-exit-callback');
-            if (!checkbox) {
-                return false;
-            }
-            return checkbox.checked || checkbox.value;
-        }
-
-        global.runSketch = function (callback) {
+        function runSketch(callback) {
             globalSketchIsRunning = true;
 
             try {
 
-                /*var codeValue2 = code.value;
-                 codeValue2 = codeValue2.replace(/[а-я]{1,}/gi,"!");
-                 alert(codeValue2);*/
-
                 var codingMode = "easy";
                 codingMode = document.getElementById('codingMode').value;
 
+                var code = document.getElementById('code');
                 var codeValue = code.value;
                 codeValue = codeValue.replace(/точка/gi, "point");
                 codeValue = codeValue.replace(/жирность/gi, "strokeWeight");
@@ -209,14 +191,8 @@
                     codeValue = "" + codeValue + "";
                 }
 
-                /*for (var i=0;i<rusWords.length;i+=2)
-                 {
-                 codeValue = codeValue.replace(/овал/gi,"ellipse");
-                 document.write(cars[i] + "<br>");
-                 }*/
-
                 /*output.value = ''; временно отключено*/
-                canvas = createCanvas();
+                var canvas = createCanvas();
                 var sketch = Processing.compile(codeValue);
 
                 if (callback) {
@@ -233,50 +209,25 @@
                 /*временно отключили
                  output.value = "Error! Error was:\n" + e.toString();*/
             }
-        };
+        }
 
-        global.convertToJS = function () {
+        function convertToJS() {
             try {
+                var code = document.getElementById('code');
                 output.value = js_beautify(
                         Processing.compile(code.value).sourceCode).replace(/\n\n\n+/g, '\n\n');
                 output.select();
             } catch (e) {
                 output.value = "Parser Error! Error was:\n" + e.toString();
             }
-        };
+        }
 
-        global.generateDataURI = function () {
-            runSketch();
-            output.value = canvas.toDataURL();
-            output.select();
-        };
+    function codeChanged() {
+        var isAutoRunEnabled = document.getElementById('input_auto_run').checked;
+        if (isAutoRunEnabled){
+            clickOutsideCode();
+        }
+    }
 
-        function buildRefTest() {
-            try {
-                if (!instance.use3DContext) {
-                    var context = canvas.getContext('2d');
-                    var imgData = context.getImageData(0, 0, canvas.width, canvas.height).data;
-                } else {
-                    var context = canvas.getContext("experimental-webgl");
-                    var imgData = new Uint8Array(canvas.width * canvas.height * 4);
-                    context.readPixels(0, 0, canvas.width, canvas.height, context.RGBA, context.UNSIGNED_BYTE, imgData);
-                }
-
-                var pixels = [];
-                for (var i = 0, idl = imgData.length; i < idl; i++) {
-                    pixels[i] = imgData[i];
-                }
-
-                var dimensions = "[" + canvas.width + "," + canvas.height + "]";
-                document.location.href = "data:text/plain;charset=utf-8;base64," +
-                        btoa('//' + dimensions + pixels + '\n' + code.value);
-            } catch (e) {
-                output.value = "Error creating ref test! Error was: " + e.toString();
-            }
-        };
-
-        global.generateRefTest = function () {
-            runSketch(buildRefTest);
-        };
-
-    }(window));
+    //    startCanvas();
+    $(document).ready(startCanvas());
