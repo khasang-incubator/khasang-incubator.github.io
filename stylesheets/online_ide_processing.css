@@ -59,3 +59,31 @@
     #sketch-container {
         border: 0px;
     }
+
+    #input_prof_mode_a {
+        position: relative;
+    }
+
+    #input_prof_mode_a:hover:before {
+        display: block;
+        content: "В проф. режиме код оборачивается в void draw(){} и задается size(440, 300)";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, calc(-100% - 10px));
+        border-radius: 3px;
+        padding: 10px;
+        background: #f7f7f7;
+        box-shadow: 0 0 2px;
+    }
+
+    #input_prof_mode_a:hover:after {
+        display: block;
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-style: solid;
+        border-width: 10px;
+        border-color: #f7f7f7 transparent transparent transparent;
