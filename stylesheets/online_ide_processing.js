@@ -128,16 +128,13 @@ function showErrorOnCanvas() {
     ctx.fillText("Проверь, все ли правильно написал?", 10, 75);
 }
 
-/*output = document.getElementById('output'), временно отключено*/
+
+    /*output = document.getElementById('output'), временно отключено*/
 
 function runSketch(callback) {
     globalSketchIsRunning = true;
 
     try {
-
-        var codingMode = "easy";
-        codingMode = document.getElementById('codingMode').value;
-
         var code = document.getElementById('code');
         var codeValue = code.value;
         codeValue = codeValue.replace(/точка/gi, "point");
@@ -179,8 +176,17 @@ function runSketch(callback) {
 
 //                if (currentStory <= 3) codeValue = "strokeWeight(10);" + codeValue;
 
+        var codingMode = "easy";
+//            codingMode = document.getElementById('codingMode').value;
+        var isProfCodingMode = document.getElementById('input_prof_mode').checked;
+        if (isProfCodingMode) {
+            codingMode = "full";
+        } else {
+            codingMode = "easy";
+        }
+
         if (codingMode == "easy") {
-            codeValue = "void setup(){size(440, 300);} void draw(){size(440, 300);" + codeValue + "}";
+            codeValue = "void setup(){size(440, 300);} void draw(){background(200);" + codeValue + "}";
         }
 
         if (codingMode == "medium") {
@@ -224,12 +230,13 @@ function convertToJS() {
 
 function codeChanged() {
     var isAutoRunEnabled = document.getElementById('input_auto_run').checked;
-    if (isAutoRunEnabled){
+    if (isAutoRunEnabled) {
         clickOutsideCode();
     }
+    document.getElementById('a_gist_url').style.display = "none";
 }
 
-    function setTabBehaviour() {
+function setTabBehaviour() {
 //        var textareas = document.getElementsByTagName('textarea');
 //        var count = textareas.length;
 //        for(var i=0;i<count;i++){
@@ -243,40 +250,158 @@ function codeChanged() {
 //            }
 //        }
 
-        $('#code').on('keydown', function(ev) {
-            var keyCode = ev.keyCode || ev.which;
+    $('#code').on('keydown', function (ev) {
+        var keyCode = ev.keyCode || ev.which;
 
-            if (keyCode == 9) {
-                ev.preventDefault();
-                var start = this.selectionStart;
-                var end = this.selectionEnd;
-                var val = this.value;
-                var selected = val.substring(start, end);
-                var re, count;
+        if (keyCode == 9) {
+            ev.preventDefault();
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            var val = this.value;
+            var selected = val.substring(start, end);
+            var re, count;
 
-                if(ev.shiftKey) {
-                    re = /^\t/gm;
-                    count = -selected.match(re).length;
-                    this.value = val.substring(0, start) + selected.replace(re, '') + val.substring(end);
-                    // todo: add support for shift-tabbing without a selection
-                } else {
-                    re = /^/gm;
-                    count = selected.match(re).length;
-                    this.value = val.substring(0, start) + selected.replace(re, '\t') + val.substring(end);
-                }
-
-                if(start === end) {
-                    this.selectionStart = end + count;
-                } else {
-                    this.selectionStart = start;
-                }
-
-                this.selectionEnd = end + count;
+            if (ev.shiftKey) {
+                re = /^\t/gm;
+                count = -selected.match(re).length;
+                this.value = val.substring(0, start) + selected.replace(re, '') + val.substring(end);
+                // todo: add support for shift-tabbing without a selection
+            } else {
+                re = /^/gm;
+                count = selected.match(re).length;
+                this.value = val.substring(0, start) + selected.replace(re, '\t') + val.substring(end);
             }
-        });
+
+            if (start === end) {
+                this.selectionStart = end + count;
+            } else {
+                this.selectionStart = start;
+            }
+
+            this.selectionEnd = end + count;
+        }
+    });
+}
+
+function changeURL(gistId) {
+    var url = "?id=" + gistId;
+
+    var isProfCodingMode = document.getElementById('input_prof_mode').checked;
+    if (isProfCodingMode) {
+        url += "&prof=" + isProfCodingMode;
     }
 
+    if (url != window.location) {
+        window.history.pushState(null, null, url);
+    }
+}
+
+function loadGist(gistId, isProfMode) {
+//        var code = document.getElementById('code');
+//        var codeValue = code.value;
+//        var data = '{"description": "a gist for a user with token api call via ajax","public": true,"files": {"file1.txt": {"content": "' + codeValue + '"}}}';
+//        var dataObj = {
+//            description: "a gist for a user with token api call via ajax",
+//            public: true,
+//            files: {
+//                "file1.txt": {
+//                    content: codeValue
+//                }
+//            }
+//        };
+//        console.log(dataObj);
+
+//        document.getElementById('span_gist_url').innerHTML = '?s=response.id';
+
+    $.ajax({
+        url: 'https://api.github.com/gists/' + gistId,
+        type: 'GET'
+    }).done(function (response) {
+        console.log(response);
+        var content = response.files["file1.txt"].content;
+        console.log('ID: ' + content);
+        document.getElementById('code').innerHTML = content;
+        if (isProfMode) {
+            document.getElementById('input_prof_mode').checked = true;
+        }
+//            document.getElementById('a_gist_url').href = response.html_url;
+//            document.getElementById('a_gist_url').innerHTML = response.html_url;
+//            document.getElementById('a_gist_url').style.display = "block";
+        /*window.open(response.html_url);*/
+    }).error(function (e) {
+        console.log(e);
+        var errorMsg = "// :( Не найден код \n// под указанным id в URL";
+        document.getElementById('code').innerHTML = errorMsg;
+    });
+}
+
+function createGist() {
+    var code = document.getElementById('code');
+    var codeValue = code.value;
+    var data = '{"description": "a gist for a user with token api call via ajax","public": true,"files": {"file1.txt": {"content": "' + codeValue + '"}}}';
+    var dataObj = {
+        description: "a gist for a user with token api call via ajax",
+        public: true,
+        files: {
+            "file1.txt": {
+                content: codeValue
+            }
+        }
+    };
+    console.log(dataObj);
+
+//        document.getElementById('span_gist_url').innerHTML = '?s=response.id';
+
+    $.ajax({
+        url: 'https://api.github.com/gists',
+        type: 'POST',
+        data: JSON.stringify(dataObj)
+    }).done(function (response) {
+        console.log(response);
+        console.log('ID: ' + response.id);
+
+        var isProfCodingMode = document.getElementById('input_prof_mode').checked;
+        isProfCodingMode = isProfCodingMode ? true : false;
+        if (isProfCodingMode) {
+            isProfCodingMode = "&prof=true";
+        } else {
+            isProfCodingMode = "";
+        }
+
+        var newParams = "?id=" + response.id + isProfCodingMode;
+
+        document.getElementById('a_gist_url').href = newParams;
+        document.getElementById('a_gist_url').innerHTML = "khasang.io/pages/processing" + newParams;
+        document.getElementById('a_gist_url').style.display = "block";
+        changeURL(response.id);
+
+//            document.getElementById('a_gist_url').href = response.html_url;
+//            document.getElementById('a_gist_url').innerHTML = response.html_url;
+//            document.getElementById('a_gist_url').style.display = "block";
+//            changeURL(response.id);
+        /*window.open(response.html_url);*/
+    }).error(function (e) {
+        console.log(e);
+    });
+}
+
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
 function startDocument() {
+    var gistId = getUrlVars()["id"];
+    var isProfMode = getUrlVars()["prof"] ? true : false;
+    if (gistId) {
+        loadGist(gistId, isProfMode);
+    } else {
+        //var errorMsg = "";
+        //document.getElementById('code').innerHTML = errorMsg;
+    }
     setTabBehaviour();
     setListeners();
     startCanvas();
@@ -308,4 +433,6 @@ function setListeners() {
     };
 }
 
+    //    startCanvas();
+    //    $(document).ready(startDocument());
 $(document).ready(startDocument);
