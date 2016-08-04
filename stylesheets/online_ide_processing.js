@@ -370,7 +370,8 @@ function createGist() {
 
         var newParams = "?id=" + response.id + isProfCodingMode;
 
-        document.getElementById('a_gist_url').href = newParams;
+        document.getElementById('a_gist_url').href = newParams; /* добавляет параметры к текущей странице */
+        document.getElementById('a_gist_url').href = "http://khasang.io/pages/processing" + newParams;
         document.getElementById('a_gist_url').innerHTML = "khasang.io/pages/processing" + newParams;
         document.getElementById('a_gist_url').style.display = "block";
         changeURL(response.id);
